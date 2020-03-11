@@ -1,0 +1,43 @@
+---
+
+- name: MacOS Setup
+  hosts: all
+  vars:
+    brew_cask_packages:
+     - 'google-chrome'
+     - 'visual-studio-code'
+     - 'slack'
+     - 'sourcetree'
+    brew_packages:
+     - 'git'
+     - 'mongodb@4.0'
+     - 'go@1.12'
+     - 'postgresql@9.5'
+
+  pre_tasks:   
+    
+    - name: Check if Homebrew is already installed
+      stat:
+           path: /usr/local/bin/brew
+      register: "homebrew_check"
+
+    - name: Install Homebrew
+      script: install-homebrew.sh
+      when: not homebrew_check.stat.exists
+
+  tasks:
+       
+    - name: Installing Homebrew Packages
+      homebrew:
+         name: "{{ item }}"
+         state: "present"
+      with_items: '{{ brew_packages }}'
+      when: homebrew_check.stat.exists
+       
+    - name: Installing Homebrew Cask Packages
+      homebrew_cask:
+        name: "{{ item }}"
+        state: "present"
+      with_items: '{{ brew_cask_packages }}'
+      when: homebrew_check.stat.exists
+       
